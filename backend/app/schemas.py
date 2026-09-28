@@ -176,14 +176,19 @@ class LeakEntry(BaseModel):
 class MeterRecordEntry(BaseModel):
     """贸易结算表明细结构。"""
 
-    field_0: str | None = None  # 表具编号
+    field_0: str | None = None  # 表具编号（当前/旧表表号）
     field_1: str | None = None  # 表具类型
     field_2: str | None = None  # 口径规格
-    field_3: str | None = None  # 安装位置
-    field_4: str | None = None  # 上次示数
-    field_5: str | None = None  # 当前示数
+    field_3: str | None = None  # 安装位置（原安装位置）
+    field_4: str | None = None  # 上次示数（周期抄表读数，不用于换表止度）
+    field_5: str | None = None  # 当前示数（周期抄表读数，不用于换表起度）
     field_6: str | None = None  # 抄表员
     field_7: str | None = None  # 表具状态
+    field_8: str | None = None  # 换表登记：旧表表号
+    field_9: float | None = None  # 换表登记：旧表止度
+    field_10: str | None = None  # 换表登记：新表表号
+    field_11: float | None = None  # 换表登记：新表起度
+    field_12: str | None = None  # 换表登记：新表安装位置
 
 class HydrantEntry(BaseModel):
     """消防栓明细结构。"""

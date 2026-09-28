@@ -52,10 +52,20 @@ def create_entry(payload: EntryPayload) -> ActionResult:
 def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     """对单条贸易结算表执行现场抄表、换表登记、恢复供电；不允许的动作会被拦下并说明原因。"""
     action = str(payload.values.get("action") or "").strip()
-    entry, message = service.run_action(entry_id, action)
+    values = {key: value for key, value in payload.values.items() if key != "action"}
+    entry, message = service.run_action(entry_id, action, values)
     if entry is None:
         return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=message, entry=entry)
+
+
+@router.post("/{entry_id}/replacement/check", response_model=ActionResult)
+def check_replacement(entry_id: int, payload: EntryPayload) -> ActionResult:
+    """按换表规则预检旧表、新表、读数与安装位置，口径与处理入口完全一致。"""
+    entry, decision = service.check_replacement(entry_id, payload.values)
+    if entry is None or decision is None:
+        raise HTTPException(status_code=404, detail=f"贸易结算表 {entry_id} 不存在或已归档")
+    return ActionResult(ok=decision.valid, message=decision.message, entry=entry)
 
 
 @router.get("/export")
