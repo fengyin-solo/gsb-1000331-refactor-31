@@ -184,6 +184,12 @@ class MeterRecordEntry(BaseModel):
     field_5: str | None = None  # 当前示数
     field_6: str | None = None  # 抄表员
     field_7: str | None = None  # 表具状态
+    field_8: str | None = None  # 旧表表号
+    field_9: str | None = None  # 新表表号
+    field_10: str | None = None  # 旧表止度
+    field_11: str | None = None  # 新表起度
+    field_12: str | None = None  # 旧表安装位置
+    field_13: str | None = None  # 新表安装位置
 
 class HydrantEntry(BaseModel):
     """消防栓明细结构。"""

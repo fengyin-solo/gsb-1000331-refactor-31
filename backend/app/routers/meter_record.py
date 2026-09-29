@@ -12,7 +12,20 @@ router = APIRouter(prefix="/api/meter_record", tags=["水表管理"])
 
 service = MeterRecordService()
 
-LIST_FIELDS = ["表具编号", "表具类型", "口径规格", "安装位置", "上次示数", "当前示数", "抄表员", "表具状态"]
+LIST_FIELDS = [
+    "表具编号",
+    "表具类型",
+    "口径规格",
+    "安装位置",
+    "上次示数",
+    "当前示数",
+    "抄表员",
+    "旧表止度",
+    "新表起度",
+    "新表表号",
+    "表具状态",
+    "换表规则",
+]
 STATUSES = ["正常", "待换表", "停走", "倒转", "缺电"]
 
 
@@ -28,6 +41,13 @@ def list_entries(
         raise HTTPException(status_code=400, detail="每页最多 200 条，请缩小分页范围")
     items, total = service.list_entries(keyword=keyword, status=status, page=page, size=size)
     return PageResult(items=items, total=total, page=page, size=size)
+
+
+@router.get("/export")
+def export_entries() -> dict[str, Any]:
+    """导出水表管理清单：返回当前过滤条件下的全量数据。"""
+    items, total = service.list_entries(page=1, size=10000)
+    return {"module": "meter_record", "total": total, "items": items}
 
 
 @router.get("/{entry_id}", response_model=dict)
@@ -52,14 +72,8 @@ def create_entry(payload: EntryPayload) -> ActionResult:
 def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     """对单条贸易结算表执行现场抄表、换表登记、恢复供电；不允许的动作会被拦下并说明原因。"""
     action = str(payload.values.get("action") or "").strip()
-    entry, message = service.run_action(entry_id, action)
+    values = {key: value for key, value in payload.values.items() if key != "action"}
+    entry, message, rule = service.run_action(entry_id, action, values)
     if entry is None:
-        return ActionResult(ok=False, message=message)
+        return ActionResult(ok=False, message=message, entry={"换表规则": rule} if rule else None)
     return ActionResult(ok=True, message=message, entry=entry)
-
-
-@router.get("/export")
-def export_entries() -> dict[str, Any]:
-    """导出水表管理清单：返回当前过滤条件下的全量数据。"""
-    items, total = service.list_entries(page=1, size=10000)
-    return {"module": "meter_record", "total": total, "items": items}
